@@ -1,0 +1,26 @@
+name: Deploy Cloudflare Worker
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@2.0.0
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+        env:
+          SERVER_URL1: ${{ secrets.SERVER_URL1 }}
+          SERVER_URL2: ${{ secrets.SERVER_URL2 }}
+          DOMAIN: ${{ secrets.DOMAIN }}
+          DNS_API_KEY: ${{ secrets.DNS_API_KEY }}
+          DNS_ZONE_ID: ${{ secrets.DNS_ZONE_ID }}
+          DNS_RECORD_ID: ${{ secrets.DNS_RECORD_ID }}

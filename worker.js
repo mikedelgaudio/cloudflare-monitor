@@ -4,7 +4,7 @@ const server2 = process.env.SERVER_URL2;
 const domain = process.env.DOMAIN;
 const dnsAPIKey = process.env.DNS_API_KEY;
 const dnsZoneID = process.env.DNS_ZONE_ID;
-const dnsRecordID = process.env.DNS_RECORD_ID;
+const dnsRecordIDs = process.env.DNS_RECORD_IDS.split(",");
 
 // Function to check server connectivity
 async function checkServerConnectivity(server) {
@@ -17,19 +17,36 @@ async function checkServerConnectivity(server) {
 }
 
 // Function to update DNS record
-async function updateDNSRecord(newIP) {
-  const url = `https://api.cloudflare.com/client/v4/zones/${dnsZoneID}/dns_records/${dnsRecordID}`;
-  const headers = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${dnsAPIKey}`,
-  };
-  const body = JSON.stringify({ content: newIP });
-
+async function updateDNSRecords(ipAddress) {
   try {
-    const response = await fetch(url, { method: "PUT", headers, body });
-    return response.ok;
+    for (const recordID of dnsRecordIDs) {
+      const url = `https://api.cloudflare.com/client/v4/zones/${dnsZoneID}/dns_records/${recordID}`;
+      const headers = {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${dnsAPIKey}`,
+      };
+      const body = {
+        type: "A",
+        name: domain,
+        content: ipAddress,
+        ttl: 1,
+        proxied: true,
+      };
+
+      const response = await fetch(url, {
+        method: "PUT",
+        headers,
+        body: JSON.stringify(body),
+      });
+
+      if (response.ok) {
+        console.log(`Successfully updated DNS record ID ${recordID}`);
+      } else {
+        console.error(`Failed to update DNS record ID ${recordID}`);
+      }
+    }
   } catch (error) {
-    return false;
+    console.error("Error updating DNS records:", error);
   }
 }
 
